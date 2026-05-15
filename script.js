@@ -1,6 +1,6 @@
 const $ = (s) => document.querySelector(s);
-const STORAGE_KEY = "volver_state_v1";
-const API_KEY_STORAGE = "volver_openrouter_key";
+const STORY_STORAGE_KEY = "volver_state_v2";
+const EMOTIONAL_STORAGE_KEY = "volver_emotional_profile_v1";
 
 const chapters = [
   { title:"Capítulo 1 — La Ventana", scene:"La lluvia golpea el cristal. Un colibrí tiembla afuera, mirándote como si recordara tu nombre.", choices:["Abrir la ventana","Ignorarlo"] },
@@ -20,40 +20,59 @@ const chapters = [
   { title:"Capítulo 15 — Final Cinematográfico", scene:"Todo converge aquí. Lo que callaste, lo que elegiste, lo que aún sientes.", choices:["Ver final"] }
 ];
 
-let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || {
-  chapter: 0, decisions: [], memory:{se_aleja:0, evita:0, se_queda:0, carino:0, ignora:0, nostalgia:0}, aiLog:[]
+let state = JSON.parse(localStorage.getItem(STORY_STORAGE_KEY) || "null") || {
+  chapter: 0,
+  decisions: [],
+  aiLog: []
 };
 
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+let emotionalProfile = JSON.parse(localStorage.getItem(EMOTIONAL_STORAGE_KEY) || "null") || {
+  nostalgic: 0,
+  distant: 0,
+  affectionate: 0,
+  avoidant: 0,
+  hopeful: 0
+};
+
+function save(){
+  localStorage.setItem(STORY_STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(EMOTIONAL_STORAGE_KEY, JSON.stringify(emotionalProfile));
+}
+
 function typeText(el, text, speed=32){ return new Promise(res=>{ el.textContent=""; let i=0; const t=setInterval(()=>{ el.textContent+=text[i]||""; if(++i>text.length){ clearInterval(t); res(); } }, speed); }); }
 
-function updateMemory(choice){
-  const m = state.memory;
+function updateEmotionalProfile(choice){
   const c = choice.toLowerCase();
-  if(c.includes("irse")||c.includes("huir")) m.se_aleja++;
-  if(c.includes("ignorar")||c.includes("callar")) {m.evita++;m.ignora++;}
-  if(c.includes("esperar")||c.includes("sí")||c.includes("acerc")) m.se_queda++;
-  if(c.includes("honest")||c.includes("confiar")||c.includes("responder")) m.carino++;
-  if(c.includes("recuerd")||c.includes("estrella")||c.includes("leer")) m.nostalgia++;
+  if (c.includes("recuerd") || c.includes("estrella") || c.includes("leer")) emotionalProfile.nostalgic++;
+  if (c.includes("irse") || c.includes("retroced") || c.includes("frialdad")) emotionalProfile.distant++;
+  if (c.includes("confiar") || c.includes("honest") || c.includes("acerc") || c.includes("responder")) emotionalProfile.affectionate++;
+  if (c.includes("ignorar") || c.includes("callar") || c.includes("huir") || c.includes("distancia")) emotionalProfile.avoidant++;
+  if (c.includes("esperar") || c.includes("sí") || c.includes("escuchar") || c.includes("volver")) emotionalProfile.hopeful++;
 }
 
 async function aiNarrative(chapter, choice){
-  const key = localStorage.getItem(API_KEY_STORAGE);
-  if(!key){
-    return `No hay API key configurada. Tu elección fue: "${choice}". Aun así, el aire susurra: quizá una parte de ti nunca quiso irse.`;
-  }
-  const prompt = `Eres un guionista romántico y cinematográfico. Responde en español con 3-4 líneas emotivas, naturales y profundas.\nCapítulo: ${chapter.title}\nEscena: ${chapter.scene}\nElección: ${choice}\nMemoria emocional acumulada: ${JSON.stringify(state.memory)}\nUsa la memoria para personalizar confesión.`;
-  try{
-    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":`Bearer ${key}`},
-      body: JSON.stringify({ model:"deepseek/deepseek-chat-v3.1", messages:[{role:"system",content:"Escribe como una película romántica interactiva."},{role:"user",content:prompt}], temperature:0.9 })
+  try {
+    const response = await fetch("/.netlify/functions/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chapter: chapter.title,
+        scene: chapter.scene,
+        choice,
+        emotionalProfile,
+        decisions: state.decisions.slice(-8),
+        recentResponses: state.aiLog.slice(-4)
+      })
     });
-    const data = await r.json();
-    const text = data?.choices?.[0]?.message?.content?.trim();
-    return text || "La noche tiembla, pero tu historia aún respira.";
-  }catch(e){
-    return "La conexión con la IA falló, pero la lluvia sigue escribiendo por ustedes.";
+
+    const data = await response.json();
+    if (!response.ok) {
+      return "Hoy el destino se quedó sin voz, pero mi pecho todavía insiste en pronunciar tu nombre.";
+    }
+
+    return data?.text || "Entre la lluvia y el silencio, todavía encuentro una forma de esperarte.";
+  } catch (_error) {
+    return "La noche se quedó sin señal, pero no sin memoria: aún late lo que vivimos.";
   }
 }
 
@@ -69,11 +88,14 @@ function renderChapter(){
   ch.choices.forEach(choice=>{
     const b = document.createElement("button"); b.className="choice-btn"; b.textContent = choice;
     b.onclick = async ()=>{
-      state.decisions.push({chapter:ch.title,choice}); updateMemory(choice);
+      state.decisions.push({chapter:ch.title, choice});
+      updateEmotionalProfile(choice);
       save();
       const ai = await aiNarrative(ch, choice);
-      state.aiLog.push({chapter:ch.title, ai}); save();
-      $("#aiResponse").textContent = ai; $("#aiBox").classList.remove("d-none");
+      state.aiLog.push({chapter:ch.title, ai});
+      save();
+      $("#aiResponse").textContent = ai;
+      $("#aiBox").classList.remove("d-none");
       setTimeout(()=>{ state.chapter++; save(); renderChapter(); }, 2600);
     };
     box.appendChild(b);
@@ -83,10 +105,9 @@ function renderChapter(){
 async function renderEnding(){
   $("#storyScreen").classList.add("d-none");
   $("#endingScreen").classList.remove("d-none");
-  const m = state.memory;
-  const dynamic = m.se_aleja > m.se_queda
-    ? "Aunque siempre terminabas alejándote… yo seguía esperándote."
-    : "Tal vez una parte de ti tampoco quería irse.";
+  const dynamic = emotionalProfile.distant > emotionalProfile.hopeful
+    ? "Te vi alejarte muchas veces, y aun así nunca dejé de quedarme donde pudiera encontrarte."
+    : "Si todavía miras hacia atrás, entonces quizá todavía exista un lugar para nosotros.";
   const lines = [
     "Probamos diferentes caminos…", "En algunos te quedabas.", "En otros te ibas.", "Pero en todos…", "yo seguía enamorándome de ti.",
     "Nunca dejé de amarte.", dynamic
@@ -121,8 +142,7 @@ $("#startBtn").onclick = ()=>{
   $("#bgm").volume=.33; $("#rainSfx").volume=.2; $("#bgm").play().catch(()=>{}); $("#rainSfx").play().catch(()=>{});
   renderChapter();
 };
-$("#restartBtn").onclick=()=>{ localStorage.removeItem(STORAGE_KEY); location.reload(); };
-$("#saveApiBtn").onclick=()=>{ localStorage.setItem(API_KEY_STORAGE, $("#apiKeyInput").value.trim()); };
+$("#restartBtn").onclick=()=>{ localStorage.removeItem(STORY_STORAGE_KEY); localStorage.removeItem(EMOTIONAL_STORAGE_KEY); location.reload(); };
 
 initIntro();
 initFx();
