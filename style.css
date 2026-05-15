@@ -20,3 +20,9 @@
 .editable{display:inline-block;min-width:180px;padding:.35rem .6rem;border:1px dashed #9fb2df;border-radius:8px;background:rgba(255,255,255,.06)}
 .final-message{font-family:"Cormorant Garamond",serif;font-size:1.5rem}
 @keyframes flicker{50%{opacity:.8}52%{opacity:.95}}
+
+.continue-slot{margin-top:1rem;display:flex;justify-content:flex-end}
+#storyScreen{transition:background .9s ease, box-shadow .9s ease, border-color .9s ease}
+#storyScreen.mood-warm{background:rgba(22,16,24,.62);border-color:rgba(255,212,170,.35);box-shadow:0 28px 70px rgba(205,132,92,.22)}
+#storyScreen.mood-cold{background:rgba(7,10,20,.68);border-color:rgba(158,178,219,.28);box-shadow:0 28px 70px rgba(53,86,148,.26)}
+#storyScreen.mood-uncertain{background:rgba(15,11,24,.64);border-color:rgba(210,174,255,.3);box-shadow:0 28px 70px rgba(124,92,190,.22)}
