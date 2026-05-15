@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Los Misterios del Corazón</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+  <div id="particles"></div>
+
+  <main class="app-shell container-fluid d-flex align-items-center justify-content-center">
+    <section id="introScreen" class="scene-panel text-center glass-card active-scene">
+      <p id="introText" class="typewriter-text mb-4"></p>
+      <h1 class="brand-title mb-4">Los Misterios del Corazón</h1>
+      <button id="startBtn" class="btn btn-romance px-5 py-3">Comenzar</button>
+    </section>
+
+    <section id="gameScreen" class="scene-panel glass-card d-none">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <span class="text-muted small">Progreso guardado</span>
+          <h2 id="levelTitle" class="level-title mb-0">Nivel 1 de 15</h2>
+        </div>
+        <button id="resetBtn" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-counterclockwise"></i> Reiniciar</button>
+      </div>
+
+      <div class="progress mb-4 bg-dark-subtle">
+        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+      </div>
+
+      <article class="mystery-box p-4 mb-4">
+        <p class="kicker mb-2">Misterio romántico</p>
+        <h3 id="mysteryText" class="mystery-text"></h3>
+      </article>
+
+      <form id="answerForm" class="mb-3">
+        <label for="answerInput" class="form-label">Tu respuesta</label>
+        <div class="input-group input-group-lg">
+          <input id="answerInput" class="form-control" autocomplete="off" placeholder="Escribe una palabra..." />
+          <button class="btn btn-romance" type="submit">Revelar</button>
+        </div>
+      </form>
+
+      <div id="feedback" class="feedback-area"></div>
+
+      <button id="hintStar" class="hint-star" aria-label="Mostrar pista">
+        <i class="bi bi-star-fill"></i>
+      </button>
+      <div id="hintCard" class="hint-card d-none"></div>
+    </section>
+
+    <section id="finalScreen" class="scene-panel text-center d-none">
+      <div id="finalLines" class="final-lines mb-4"></div>
+      <div id="proposalBlock" class="proposal d-none">
+        <p class="mb-2">Y si todavía existe una posibilidad…</p>
+        <p class="editable"><i class="bi bi-geo-alt-fill"></i> <span contenteditable="true">[Escribe aquí una dirección]</span></p>
+        <p class="editable"><i class="bi bi-clock-fill"></i> <span contenteditable="true">[Escribe aquí una hora]</span></p>
+        <p class="mt-3">Me gustaría comenzar otra historia contigo.</p>
+        <button id="endBtn" class="btn btn-romance mt-2">Fin del viaje</button>
+      </div>
+    </section>
+  </main>
+
+  <audio id="bgm" loop preload="auto" src="https://cdn.pixabay.com/download/audio/2022/10/30/audio_10b6f2f9ea.mp3"></audio>
+  <audio id="sfxCorrect" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_0f149e6f95.mp3"></audio>
+  <audio id="sfxHint" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_1f3f16d5e4.mp3"></audio>
+  <audio id="sfxType" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_b4b8cd7adf.mp3"></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
