@@ -1,118 +1,29 @@
-:root {
-  --bg: #06070f;
-  --bg-soft: #101426;
-  --wine: #7f1d3f;
-  --glow: #8db6ff;
-  --text: #f5f1ff;
-}
-
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
-  background: radial-gradient(circle at 20% 20%, #111734, var(--bg));
-  color: var(--text);
-  overflow: hidden;
-}
-
-#starfield, #particles {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-}
-
-.app-shell {
-  min-height: 100vh;
-  position: relative;
-  z-index: 2;
-}
-
-.scene-panel {
-  width: min(900px, 95vw);
-  max-height: 92vh;
-  overflow-y: auto;
-  padding: 2rem;
-  border-radius: 24px;
-  animation: fadeIn 1.2s ease;
-}
-
-.glass-card {
-  background: rgba(13, 16, 30, 0.58);
-  border: 1px solid rgba(220, 230, 255, 0.14);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 50px rgba(0,0,0,.45), inset 0 0 30px rgba(141,182,255,.06);
-}
-
-.brand-title, .level-title, .mystery-text { font-family: 'Cormorant Garamond', serif; }
-.brand-title { font-size: clamp(2.2rem, 5vw, 4rem); letter-spacing: 1px; }
-.level-title { font-size: 2rem; }
-.mystery-text { font-size: clamp(1.4rem, 2.4vw, 2rem); }
-
-.typewriter-text { min-height: 4rem; font-size: 1.2rem; opacity: .9; }
-.kicker { text-transform: uppercase; letter-spacing: 2px; color: #c5cce4; font-size: .75rem; }
-
-.btn-romance {
-  background: linear-gradient(120deg, #58152f, var(--wine));
-  color: #fff;
-  border: 1px solid rgba(255,255,255,.2);
-  box-shadow: 0 0 16px rgba(127,29,63,.5);
-  transition: all .3s ease;
-}
-.btn-romance:hover { transform: translateY(-2px); filter: brightness(1.15); color: #fff; }
-
-.progress { height: 10px; border-radius: 999px; }
-.progress-bar { background: linear-gradient(90deg, #8db6ff, var(--wine)); transition: width .6s ease; }
-
-.mystery-box {
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.1);
-  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-}
-
-.form-control {
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.18);
-  color: #fff;
-}
-.form-control:focus { background: rgba(255,255,255,.1); color: #fff; box-shadow: 0 0 0 .2rem rgba(141,182,255,.2); }
-
-.feedback-area { min-height: 100px; }
-.feedback-area .ok { color: #d7e8ff; animation: fadeIn .7s ease; }
-.feedback-area .error { color: #ffc3d3; }
-
-.hint-star {
-  position: absolute;
-  border: none;
-  background: transparent;
-  color: #ffe27e;
-  font-size: 1.7rem;
-  filter: drop-shadow(0 0 10px #ffe27e);
-  animation: floaty 2.8s ease-in-out infinite;
-  z-index: 5;
-}
-.hint-card {
-  position: absolute;
-  right: 2rem;
-  bottom: 7rem;
-  max-width: 340px;
-  padding: 1rem 1.2rem;
-  border-radius: 16px;
-  background: rgba(15, 20, 38, .72);
-  border: 1px solid rgba(255,255,255,.2);
-  box-shadow: 0 0 25px rgba(141,182,255,.25);
-  animation: fadeIn .5s ease;
-}
-
-.final-lines { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.4rem, 3vw, 2.2rem); }
-.proposal .editable {
-  display: inline-block;
-  padding: .6rem .9rem;
-  margin: .4rem;
-  border-radius: 12px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.22);
-}
-
-@keyframes fadeIn { from {opacity:0; transform: translateY(12px);} to {opacity:1; transform: translateY(0);} }
-@keyframes floaty { 0%,100%{transform: translateY(0);} 50%{transform: translateY(-8px);} }
+:root{--bg:#060913;--night:#10192f;--wine:#6f1b39;--txt:#f4f6ff;--accent:#88b6ff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 20% 10%,#1a2547,var(--bg));font-family:Inter,sans-serif;color:var(--txt);overflow:hidden}
+#bgFx,.vignette{position:fixed;inset:0}
+.vignette{pointer-events:none;background:radial-gradient(circle,transparent 40%,rgba(0,0,0,.65) 100%)}
+.app{min-height:100vh;position:relative;z-index:2}
+.panel{width:min(980px,95vw);max-height:93vh;overflow:auto;padding:2rem;border-radius:22px;background:rgba(9,13,25,.62);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.title{font-family:Cinzel,serif;letter-spacing:2px}
+.typed{white-space:pre-line;min-height:120px;opacity:.9}
+.btn-main{background:linear-gradient(120deg,var(--wine),#2f224e);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.stage{min-height:58vh;padding:1rem;border-radius:15px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08)}
+.glass{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:1rem}
+.word-miss{border-bottom:1px dashed #ffc3d3;padding:0 .4rem;min-width:120px;display:inline-block}
+.puzzle-grid{display:grid;grid-template-columns:repeat(3,110px);gap:10px;justify-content:center}
+.piece{width:110px;height:80px;background:#2d395f;color:#fff;display:flex;align-items:center;justify-content:center;cursor:grab}
+.dropzone{width:110px;height:80px;border:1px dashed #99b9ff}
+.star{width:16px;height:16px;border-radius:50%;background:#b9d4ff;position:absolute;cursor:pointer;box-shadow:0 0 12px #b9d4ff}
+.memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mem-card{height:76px;display:flex;align-items:center;justify-content:center;background:#202b49;cursor:pointer}
+.hummingbird{position:absolute;width:28px;height:20px;border-radius:50%;background:#9dd4ff;box-shadow:0 0 12px #9dd4ff}
+.flashlight{position:relative;height:340px;background:#05070f;overflow:hidden}
+.hidden-line{position:absolute;color:#fff;opacity:.1}
+.reveal{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle 120px at var(--x,50%) var(--y,50%),transparent 0%,rgba(0,0,0,.93) 72%)}
+.float-words span{display:inline-block;margin:.5rem;padding:.35rem .6rem;border-radius:10px;background:rgba(255,255,255,.08);animation:float 3s ease-in-out infinite}
+.ending-text{font-family:Cinzel,serif;font-size:1.4rem;white-space:pre-line}
+.editable{padding:.7rem;border:1px dashed #9abaff;background:rgba(255,255,255,.06);border-radius:10px}
+@keyframes float{50%{transform:translateY(-8px)}}
+.glitch{animation:glitch .4s linear 2}
+@keyframes glitch{25%{transform:translate(2px,-1px)}50%{transform:translate(-2px,1px)}75%{transform:translate(1px,1px)}}
