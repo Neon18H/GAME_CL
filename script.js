@@ -1,155 +1,47 @@
-const levels = [
-  ["¿Qué sentimiento puede sobrevivir incluso al silencio?", "amor", "No desapareció aunque dejaron de hablar.", "A veces el silencio también es una forma de extrañar."],
-  ["¿Qué lugar puede sentirse como hogar sin ser una casa?", "corazon", "Era el único lugar donde quería quedarme.", "Nunca me sentí tan en paz como contigo."],
-  ["¿Qué sigue vivo incluso después de una despedida?", "recuerdos", "El tiempo no pudo borrarlos.", "Todavía encuentro partes de ti en mis días."],
-  ["¿Qué me impidió decirte lo que sentía?", "miedo", "A veces amar también asusta.", "Perderte siempre fue mi mayor temor."],
-  ["¿Qué hacía eterno cada momento contigo?", "felicidad", "No era el lugar… eras tú.", "Convertías los días normales en recuerdos eternos."],
-  ["¿Qué nunca dejó de buscar el colibrí?", "volver", "El corazón siempre regresa donde fue feliz.", "Una parte de mí jamás se fue."],
-  ["¿Qué guardé incluso cuando intenté olvidarte?", "sentimientos", "El tiempo no logró destruirlos.", "Te seguí queriendo incluso en silencio."],
-  ["¿Qué hacía especiales las mañanas?", "tu", "No era el amanecer.", "Tu presencia cambiaba completamente mis días."],
-  ["¿Qué jamás logró apagar la distancia?", "conexion", "Seguía sintiéndose incluso lejos.", "Siempre sentí que algo nos seguía uniendo."],
-  ["¿Qué quería hacer el colibrí después de perderse?", "regresar", "Algunas almas siempre encuentran el camino.", "Si pudiera elegir otra vez… volvería a ti."],
-  ["¿Qué descubrí demasiado tarde?", "verdad", "El corazón ya lo sabía.", "Entendí tarde cuánto significabas para mí."],
-  ["¿Qué nunca dejó de pronunciar mi mente?", "nombre", "Incluso el silencio lo repetía.", "Pensarte se volvió involuntario."],
-  ["¿Qué aún deseo recuperar?", "nosotros", "No era algo… era alguien.", "Todavía sueño con volver a encontrarnos."],
-  ["¿Qué siguió intacto a pesar del tiempo?", "amor", "Nunca desapareció realmente.", "Mi corazón nunca aprendió a dejarte ir."],
-  ["¿Qué verdad escondió el colibrí durante todo este tiempo?", "amarte", "Era imposible ocultarlo para siempre.", "La verdad es que nunca dejé de amarte."]
+const $=s=>document.querySelector(s);
+const state=JSON.parse(localStorage.getItem('archivos_corazon')||'{"level":0,"fragments":[],"decision":""}');
+const introLines=["Algunas personas desaparecen…","Pero ciertas emociones dejan rastros.","Has encontrado 15 archivos ocultos."];
+const fragments=[];
+const audio={bgm:$('#bgm'),tick:$('#tick'),ok:$('#ok')};
+
+function save(){localStorage.setItem('archivos_corazon',JSON.stringify(state));}
+function typeText(el,text,s=42,cb){el.textContent='';let i=0;const t=setInterval(()=>{el.textContent+=text[i]||'';audio.tick.currentTime=0;audio.tick.play().catch(()=>{});if(++i>text.length){clearInterval(t);cb&&cb();}},s)}
+function done(msg){audio.ok.play().catch(()=>{});if(msg)fragments.push(msg);state.fragments=[...new Set(fragments.concat(state.fragments))];state.level++;save();setTimeout(render,700)}
+
+function render(){const n=state.level;$('#levelName').textContent=`Archivo ${Math.min(n+1,15)} de 15`;$('#progress').style.width=`${(n/15)*100}%`;const s=$('#stage');s.innerHTML='';if(n>=15)return finalConfession();levels[n](s)}
+
+const levels=[
+(s)=>{s.innerHTML=`<div class='glass'>Chat recuperado: "Creo que nunca dejé de <input id='l1'/>" <button id='go1' class='btn btn-main btn-sm'>Reconstruir</button></div>`;$('#go1').onclick=()=>$('#l1').value.trim().toLowerCase()==='amarte'?done('Creo que nunca dejé de amarte.'):s.classList.add('glitch')},
+(s)=>{s.innerHTML=`<p>Foto rota: arrastra en orden 1-2-3.</p><div class='d-flex gap-2' id='dz'></div><div class='puzzle-grid mt-3'>${[2,3,1].map(n=>`<div class='piece' draggable='true' data-v='${n}'>Pieza ${n}</div>`).join('')}</div>`;const dz=$('#dz');[1,2,3].forEach(()=>dz.innerHTML+=`<div class='dropzone'></div>`);let seq=[];document.querySelectorAll('.piece').forEach(p=>{p.ondragstart=e=>e.dataTransfer.setData('t',p.dataset.v)});document.querySelectorAll('.dropzone').forEach(d=>{d.ondragover=e=>e.preventDefault();d.ondrop=e=>{e.preventDefault();const v=e.dataTransfer.getData('t');d.textContent=v;seq.push(+v);if(seq.length===3&&seq.join('')==='123')done('En cada pixel, seguía tu nombre.')}})},
+(s)=>{s.innerHTML=`<p>Audio oculto: activa fragmentos correctos.</p>${['to','da','vía','pienso','en','ti'].map((x,i)=>`<button class='btn btn-outline-light m-1 f' data-i='${i}'>${x}</button>`).join('')}<div id='out' class='mt-2'></div>`;const order=[0,1,2,3,4,5],hit=[];document.querySelectorAll('.f').forEach(b=>b.onclick=()=>{hit.push(+b.dataset.i);$('#out').textContent=hit.map(i=>order.includes(i)?['to','da','vía','pienso','en','ti'][i]:'').join(' ');if(hit.length===6&&hit.every((v,i)=>v===order[i]))done('Todavía pienso en ti.')})},
+(s)=>{s.innerHTML=`<p>Constelación: conecta 5 estrellas.</p><div id='sky' style='height:260px;position:relative'></div>`;const sky=$('#sky');for(let i=0;i<5;i++){const st=document.createElement('div');st.className='star';st.style.left=(15+i*16)+'%';st.style.top=(20+Math.sin(i)*35)+'%';sky.appendChild(st)}let c=0;document.querySelectorAll('.star').forEach(st=>st.onclick=()=>{st.style.background='#ff7ea9';if(++c===5)done('Siempre terminaba regresando a ti.')})},
+(s)=>{const items=['Lluvia en la ventana','Discusión ajena','Tu risa en el pasillo','Rostro desconocido'];s.innerHTML='<p>Elige 2 recuerdos verdaderos.</p>';items.forEach((t,i)=>s.innerHTML+=`<button class='btn btn-outline-light m-1 r' data-ok='${i===0||i===2}'>${t}</button>`);let ok=0;document.querySelectorAll('.r').forEach(b=>b.onclick=()=>{b.disabled=true;if(b.dataset.ok==='true'){ok++;b.className='btn btn-success m-1'}else b.remove();if(ok===2)done('No pude borrar lo real.')})},
+(s)=>{s.innerHTML=`<p>Código del corazón:</p><pre>err_404.bin
+love.tmp
+__amarte__.key
+lost.sig</pre><input id='c6' placeholder='archivo correcto'> <button id='b6' class='btn btn-main btn-sm'>Ejecutar</button>`;$('#b6').onclick=()=>$('#c6').value.includes('amarte')&&done('Clave emocional aceptada.')},
+(s)=>{s.innerHTML=`<p style='transform:scaleX(-1)'>odatil ne euq ol odot erpmeis etiuq es oN</p><button id='mirror' class='btn btn-main'>Reflejar</button>`;$('#mirror').onclick=()=>done('No quise siempre todo lo que en ti latido.')},
+(s)=>{s.innerHTML=`<p>Latidos: pulsa con ritmo 1-1-2.</p><button id='beat' class='btn btn-main'>♥</button><div id='btxt'></div>`;const seq=[];$('#beat').onclick=()=>{seq.push(Date.now());$('#btxt').textContent='♥ '.repeat(seq.length);if(seq.length===3)done('Mi corazón aún reacciona a ti.')}},
+(s)=>{s.innerHTML=`<p>Decisión:</p><button class='btn btn-outline-light m-1 d' data-v='esperar'>Esperarte</button><button class='btn btn-outline-light m-1 d' data-v='buscar'>Buscarte</button>`;document.querySelectorAll('.d').forEach(b=>b.onclick=()=>{state.decision=b.dataset.v;done(state.decision==='buscar'?'Elegí buscarte otra vez.':'Me quedé esperando tu regreso.')})},
+(s)=>{const arr=['cine','lluvia','carta','carta','sol','cine','lluvia','sol'];let open=[];s.innerHTML='<p>Memoria:</p><div class="memory-grid">'+arr.map((v,i)=>`<div class='mem-card' data-v='${v}' data-i='${i}'>?</div>`).join('')+'</div>';document.querySelectorAll('.mem-card').forEach(c=>c.onclick=()=>{if(c.textContent!=='?')return;c.textContent=c.dataset.v;open.push(c);if(open.length===2){if(open[0].dataset.v===open[1].dataset.v){open=[];if([...document.querySelectorAll('.mem-card')].every(x=>x.textContent!=='?'))done('Cada recuerdo tenía tu eco.')}else setTimeout(()=>{open.forEach(x=>x.textContent='?');open=[]},500)}})},
+(s)=>{s.innerHTML=`<p>Ventana del colibrí: síguelo con el mouse.</p><div id='hunt' style='height:250px;position:relative'><div class='hummingbird' id='bird'></div></div>`;const bird=$('#bird');let x=30;setInterval(()=>{x=(x+22)%260;bird.style.left=x+'px';bird.style.top=(80+Math.sin(x/25)*70)+'px';},250);$('#hunt').onmousemove=e=>{const r=e.currentTarget.getBoundingClientRect();const bx=bird.offsetLeft,by=bird.offsetTop;if(Math.hypot(e.clientX-r.left-bx,e.clientY-r.top-by)<40)done('Te encontré en la misma ventana.')};},
+(s)=>{const lines=['Perdón por callar','Nunca me fui del todo','Aún guardo tu voz'];s.innerHTML='<p>Carta digital: revela fragmentos.</p>'+lines.map((l,i)=>`<button class='btn btn-outline-light m-1 c12' data-t='${l}'>Fragmento ${i+1}</button>`).join('')+'<div id="out12" class="mt-2"></div>';let got=[];document.querySelectorAll('.c12').forEach(b=>b.onclick=()=>{got.push(b.dataset.t);b.disabled=true;$('#out12').innerHTML=got.join('<br>');if(got.length===3)done('La carta nunca dejó de escribirse.')})},
+(s)=>{s.innerHTML=`<p>Rebobina el tiempo.</p><input id='time13' type='range' min='0' max='100' value='100' class='form-range'><div id='mem13'></div>`;$('#time13').oninput=e=>{const v=+e.target.value;$('#mem13').textContent=v<70?'Primer abrazo':v<40?'Risa compartida':v<15?'Promesa en voz baja':'';if(v<10)done('Todo era más simple contigo.')};},
+(s)=>{s.innerHTML=`<p>Ilumina la habitación.</p><div class='flashlight' id='room'><div class='hidden-line' style='left:40px;top:70px'>Nunca te olvidé.</div><div class='hidden-line' style='left:210px;top:180px'>Siempre estuviste aquí.</div><div class='reveal' id='rv'></div></div>`;const room=$('#room'),rv=$('#rv');room.onmousemove=e=>{const r=room.getBoundingClientRect();rv.style.setProperty('--x',((e.clientX-r.left)/r.width*100)+'%');rv.style.setProperty('--y',((e.clientY-r.top)/r.height*100)+'%');if(e.clientX-r.left>200&&e.clientY-r.top>150)done('La verdad aún brillaba.')};},
+(s)=>{s.innerHTML=`<p>Confesión final:</p><div class='float-words'>${state.fragments.slice(-8).map(f=>`<span>${f}</span>`).join('')}<span>Nunca</span><span>dejé</span><span>de</span><span>amarte</span></div><button id='close15' class='btn btn-main mt-3'>Unir todo</button>`;$('#close15').onclick=()=>done('Nunca dejé de amarte.')}
 ];
 
-const els = {
-  introText: document.getElementById('introText'), startBtn: document.getElementById('startBtn'),
-  introScreen: document.getElementById('introScreen'), gameScreen: document.getElementById('gameScreen'),
-  finalScreen: document.getElementById('finalScreen'), levelTitle: document.getElementById('levelTitle'),
-  mysteryText: document.getElementById('mysteryText'), progressBar: document.getElementById('progressBar'),
-  answerForm: document.getElementById('answerForm'), answerInput: document.getElementById('answerInput'),
-  feedback: document.getElementById('feedback'), hintStar: document.getElementById('hintStar'), hintCard: document.getElementById('hintCard'),
-  finalLines: document.getElementById('finalLines'), proposalBlock: document.getElementById('proposalBlock'),
-  endBtn: document.getElementById('endBtn'), resetBtn: document.getElementById('resetBtn'),
-  bgm: document.getElementById('bgm'), sfxCorrect: document.getElementById('sfxCorrect'), sfxHint: document.getElementById('sfxHint'), sfxType: document.getElementById('sfxType')
-};
-
-let state = JSON.parse(localStorage.getItem('misterios_estado') || '{"level":0,"pieces":[]}');
-
-function normalize(t){ return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
-
-function typeWriter(target, text, speed = 40, cb){
-  target.textContent = '';
-  let i = 0;
-  const id = setInterval(() => {
-    target.textContent += text[i] || '';
-    if (i % 3 === 0) { els.sfxType.currentTime = 0; els.sfxType.play().catch(()=>{}); }
-    i++;
-    if(i > text.length){ clearInterval(id); cb && cb(); }
-  }, speed);
+function finalConfession(){
+  $('#experience').classList.add('d-none');$('#ending').classList.remove('d-none');
+  const lines=["Quizás fui torpe…","Quizás llegué demasiado tarde…","Pero jamás dejé de sentirlo.","Nunca dejé de amarte."];
+  let i=0;const box=$('#endingText');
+  const next=()=>{if(i>=lines.length){$('#addressBlock').classList.remove('d-none');return;}typeText(box,box.textContent+(box.textContent?'\n\n':'')+lines[i],34,()=>setTimeout(next,650));i++};
+  next();
 }
 
-function placeStar(){
-  const top = 12 + Math.random() * 70;
-  const left = 6 + Math.random() * 82;
-  els.hintStar.style.top = `${top}%`;
-  els.hintStar.style.left = `${left}%`;
-}
+$('#btnAccess').onclick=()=>{$('#intro').classList.add('d-none');$('#experience').classList.remove('d-none');audio.bgm.volume=.35;audio.bgm.play().catch(()=>{});render()};
+$('#btnRestart').onclick=()=>{localStorage.removeItem('archivos_corazon');location.reload()};
+$('#btnFinish').onclick=()=>$('#endingText').textContent+="\n\nArchivo cerrado.";
 
-function renderLevel(){
-  const i = state.level;
-  if(i >= levels.length) return runEnding();
-  const [m] = levels[i];
-  els.levelTitle.textContent = `Nivel ${i+1} de 15`;
-  els.mysteryText.textContent = m;
-  els.progressBar.style.width = `${(i/levels.length)*100}%`;
-  els.feedback.innerHTML = '';
-  els.answerInput.value = '';
-  els.hintCard.classList.add('d-none');
-  els.hintStar.classList.remove('d-none');
-  placeStar();
-}
-
-function save(){ localStorage.setItem('misterios_estado', JSON.stringify(state)); }
-
-els.answerForm.addEventListener('submit', (e)=>{
-  e.preventDefault();
-  const value = normalize(els.answerInput.value);
-  const lvl = levels[state.level];
-  if(value === normalize(lvl[1])){
-    els.sfxCorrect.play().catch(()=>{});
-    state.pieces.push(lvl[3]);
-    state.level++;
-    save();
-    els.feedback.innerHTML = `<div class="ok"><p>✨ ${lvl[3]}</p><small>Fragmento desbloqueado.</small></div>`;
-    setTimeout(renderLevel, 2000);
-  } else {
-    els.feedback.innerHTML = '<div class="error">La respuesta no abre este recuerdo… intenta otra vez.</div>';
-  }
-});
-
-els.hintStar.addEventListener('click', ()=>{
-  const lvl = levels[state.level];
-  els.sfxHint.play().catch(()=>{});
-  els.hintCard.textContent = `Pista: ${lvl[2]}`;
-  els.hintCard.classList.remove('d-none');
-  els.hintStar.classList.add('d-none');
-  setTimeout(()=>{
-    els.hintCard.style.opacity = '0';
-    setTimeout(()=>{ els.hintCard.classList.add('d-none'); els.hintCard.style.opacity = '1'; }, 900);
-  }, 5000);
-});
-
-function runEnding(){
-  els.gameScreen.classList.add('d-none');
-  els.finalScreen.classList.remove('d-none');
-  const seq = [
-    'Intenté seguir adelante…',
-    'Intenté convencerme de que el tiempo lo arreglaría todo…',
-    'Pero cada camino…',
-    'siempre terminaba llevándome hacia ti.',
-    'Nunca dejé de amarte.'
-  ];
-  let idx = 0;
-  const showNext = ()=>{
-    if(idx >= seq.length){ els.proposalBlock.classList.remove('d-none'); return; }
-    const line = document.createElement('p');
-    els.finalLines.appendChild(line);
-    typeWriter(line, seq[idx], idx===4 ? 90 : 45, ()=> setTimeout(showNext, 1000));
-    idx++;
-  };
-  showNext();
-}
-
-els.endBtn?.addEventListener('click', ()=>{
-  els.finalLines.innerHTML += '<p class="mt-4">Gracias por llegar hasta aquí.</p>';
-});
-
-els.resetBtn.addEventListener('click', ()=>{
-  state = { level: 0, pieces: [] };
-  save();
-  renderLevel();
-});
-
-els.startBtn.addEventListener('click', ()=>{
-  els.bgm.volume = 0.45;
-  els.bgm.play().catch(()=>{});
-  els.introScreen.classList.add('d-none');
-  els.gameScreen.classList.remove('d-none');
-  renderLevel();
-});
-
-typeWriter(els.introText, 'Hay sentimientos que no desaparecen…\nsolo aprenden a esconderse.\n\nBienvenida a Los Misterios del Corazón.', 52);
-
-(function drawStarfield(){
-  const c = document.getElementById('starfield');
-  const ctx = c.getContext('2d');
-  const stars = Array.from({length: 120}, () => ({x: Math.random(), y: Math.random(), z: Math.random()*1.2+0.2}));
-  const resize = ()=>{ c.width = innerWidth; c.height = innerHeight; };
-  addEventListener('resize', resize); resize();
-  (function loop(){
-    ctx.clearRect(0,0,c.width,c.height);
-    stars.forEach(s=>{
-      const x = s.x * c.width, y = s.y * c.height;
-      const r = s.z * 1.6;
-      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
-      ctx.fillStyle = `rgba(180,210,255,${0.3+s.z*0.4})`; ctx.fill();
-      s.y += 0.00035 * s.z; if(s.y > 1) s.y = 0;
-    });
-    requestAnimationFrame(loop);
-  })();
-})();
+(function intro(){typeText($('#introType'),introLines.join('\n\n'),48)})();
+(function bg(){const c=$('#bgFx'),x=c.getContext('2d');let p=[];const rs=()=>{c.width=innerWidth;c.height=innerHeight;p=Array.from({length:90},()=>({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*2+1,v:Math.random()*0.6+0.2}))};addEventListener('resize',rs);rs();(function loop(){x.clearRect(0,0,c.width,c.height);p.forEach(o=>{x.fillStyle='rgba(135,170,255,.45)';x.beginPath();x.arc(o.x,o.y,o.r,0,7);x.fill();o.y-=o.v;if(o.y<0)o.y=c.height});requestAnimationFrame(loop)})();})();
