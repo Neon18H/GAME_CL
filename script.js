@@ -1,47 +1,128 @@
-const $=s=>document.querySelector(s);
-const state=JSON.parse(localStorage.getItem('archivos_corazon')||'{"level":0,"fragments":[],"decision":""}');
-const introLines=["Algunas personas desaparecen…","Pero ciertas emociones dejan rastros.","Has encontrado 15 archivos ocultos."];
-const fragments=[];
-const audio={bgm:$('#bgm'),tick:$('#tick'),ok:$('#ok')};
+const $ = (s) => document.querySelector(s);
+const STORAGE_KEY = "volver_state_v1";
+const API_KEY_STORAGE = "volver_openrouter_key";
 
-function save(){localStorage.setItem('archivos_corazon',JSON.stringify(state));}
-function typeText(el,text,s=42,cb){el.textContent='';let i=0;const t=setInterval(()=>{el.textContent+=text[i]||'';audio.tick.currentTime=0;audio.tick.play().catch(()=>{});if(++i>text.length){clearInterval(t);cb&&cb();}},s)}
-function done(msg){audio.ok.play().catch(()=>{});if(msg)fragments.push(msg);state.fragments=[...new Set(fragments.concat(state.fragments))];state.level++;save();setTimeout(render,700)}
-
-function render(){const n=state.level;$('#levelName').textContent=`Archivo ${Math.min(n+1,15)} de 15`;$('#progress').style.width=`${(n/15)*100}%`;const s=$('#stage');s.innerHTML='';if(n>=15)return finalConfession();levels[n](s)}
-
-const levels=[
-(s)=>{s.innerHTML=`<div class='glass'>Chat recuperado: "Creo que nunca dejé de <input id='l1'/>" <button id='go1' class='btn btn-main btn-sm'>Reconstruir</button></div>`;$('#go1').onclick=()=>$('#l1').value.trim().toLowerCase()==='amarte'?done('Creo que nunca dejé de amarte.'):s.classList.add('glitch')},
-(s)=>{s.innerHTML=`<p>Foto rota: arrastra en orden 1-2-3.</p><div class='d-flex gap-2' id='dz'></div><div class='puzzle-grid mt-3'>${[2,3,1].map(n=>`<div class='piece' draggable='true' data-v='${n}'>Pieza ${n}</div>`).join('')}</div>`;const dz=$('#dz');[1,2,3].forEach(()=>dz.innerHTML+=`<div class='dropzone'></div>`);let seq=[];document.querySelectorAll('.piece').forEach(p=>{p.ondragstart=e=>e.dataTransfer.setData('t',p.dataset.v)});document.querySelectorAll('.dropzone').forEach(d=>{d.ondragover=e=>e.preventDefault();d.ondrop=e=>{e.preventDefault();const v=e.dataTransfer.getData('t');d.textContent=v;seq.push(+v);if(seq.length===3&&seq.join('')==='123')done('En cada pixel, seguía tu nombre.')}})},
-(s)=>{s.innerHTML=`<p>Audio oculto: activa fragmentos correctos.</p>${['to','da','vía','pienso','en','ti'].map((x,i)=>`<button class='btn btn-outline-light m-1 f' data-i='${i}'>${x}</button>`).join('')}<div id='out' class='mt-2'></div>`;const order=[0,1,2,3,4,5],hit=[];document.querySelectorAll('.f').forEach(b=>b.onclick=()=>{hit.push(+b.dataset.i);$('#out').textContent=hit.map(i=>order.includes(i)?['to','da','vía','pienso','en','ti'][i]:'').join(' ');if(hit.length===6&&hit.every((v,i)=>v===order[i]))done('Todavía pienso en ti.')})},
-(s)=>{s.innerHTML=`<p>Constelación: conecta 5 estrellas.</p><div id='sky' style='height:260px;position:relative'></div>`;const sky=$('#sky');for(let i=0;i<5;i++){const st=document.createElement('div');st.className='star';st.style.left=(15+i*16)+'%';st.style.top=(20+Math.sin(i)*35)+'%';sky.appendChild(st)}let c=0;document.querySelectorAll('.star').forEach(st=>st.onclick=()=>{st.style.background='#ff7ea9';if(++c===5)done('Siempre terminaba regresando a ti.')})},
-(s)=>{const items=['Lluvia en la ventana','Discusión ajena','Tu risa en el pasillo','Rostro desconocido'];s.innerHTML='<p>Elige 2 recuerdos verdaderos.</p>';items.forEach((t,i)=>s.innerHTML+=`<button class='btn btn-outline-light m-1 r' data-ok='${i===0||i===2}'>${t}</button>`);let ok=0;document.querySelectorAll('.r').forEach(b=>b.onclick=()=>{b.disabled=true;if(b.dataset.ok==='true'){ok++;b.className='btn btn-success m-1'}else b.remove();if(ok===2)done('No pude borrar lo real.')})},
-(s)=>{s.innerHTML=`<p>Código del corazón:</p><pre>err_404.bin
-love.tmp
-__amarte__.key
-lost.sig</pre><input id='c6' placeholder='archivo correcto'> <button id='b6' class='btn btn-main btn-sm'>Ejecutar</button>`;$('#b6').onclick=()=>$('#c6').value.includes('amarte')&&done('Clave emocional aceptada.')},
-(s)=>{s.innerHTML=`<p style='transform:scaleX(-1)'>odatil ne euq ol odot erpmeis etiuq es oN</p><button id='mirror' class='btn btn-main'>Reflejar</button>`;$('#mirror').onclick=()=>done('No quise siempre todo lo que en ti latido.')},
-(s)=>{s.innerHTML=`<p>Latidos: pulsa con ritmo 1-1-2.</p><button id='beat' class='btn btn-main'>♥</button><div id='btxt'></div>`;const seq=[];$('#beat').onclick=()=>{seq.push(Date.now());$('#btxt').textContent='♥ '.repeat(seq.length);if(seq.length===3)done('Mi corazón aún reacciona a ti.')}},
-(s)=>{s.innerHTML=`<p>Decisión:</p><button class='btn btn-outline-light m-1 d' data-v='esperar'>Esperarte</button><button class='btn btn-outline-light m-1 d' data-v='buscar'>Buscarte</button>`;document.querySelectorAll('.d').forEach(b=>b.onclick=()=>{state.decision=b.dataset.v;done(state.decision==='buscar'?'Elegí buscarte otra vez.':'Me quedé esperando tu regreso.')})},
-(s)=>{const arr=['cine','lluvia','carta','carta','sol','cine','lluvia','sol'];let open=[];s.innerHTML='<p>Memoria:</p><div class="memory-grid">'+arr.map((v,i)=>`<div class='mem-card' data-v='${v}' data-i='${i}'>?</div>`).join('')+'</div>';document.querySelectorAll('.mem-card').forEach(c=>c.onclick=()=>{if(c.textContent!=='?')return;c.textContent=c.dataset.v;open.push(c);if(open.length===2){if(open[0].dataset.v===open[1].dataset.v){open=[];if([...document.querySelectorAll('.mem-card')].every(x=>x.textContent!=='?'))done('Cada recuerdo tenía tu eco.')}else setTimeout(()=>{open.forEach(x=>x.textContent='?');open=[]},500)}})},
-(s)=>{s.innerHTML=`<p>Ventana del colibrí: síguelo con el mouse.</p><div id='hunt' style='height:250px;position:relative'><div class='hummingbird' id='bird'></div></div>`;const bird=$('#bird');let x=30;setInterval(()=>{x=(x+22)%260;bird.style.left=x+'px';bird.style.top=(80+Math.sin(x/25)*70)+'px';},250);$('#hunt').onmousemove=e=>{const r=e.currentTarget.getBoundingClientRect();const bx=bird.offsetLeft,by=bird.offsetTop;if(Math.hypot(e.clientX-r.left-bx,e.clientY-r.top-by)<40)done('Te encontré en la misma ventana.')};},
-(s)=>{const lines=['Perdón por callar','Nunca me fui del todo','Aún guardo tu voz'];s.innerHTML='<p>Carta digital: revela fragmentos.</p>'+lines.map((l,i)=>`<button class='btn btn-outline-light m-1 c12' data-t='${l}'>Fragmento ${i+1}</button>`).join('')+'<div id="out12" class="mt-2"></div>';let got=[];document.querySelectorAll('.c12').forEach(b=>b.onclick=()=>{got.push(b.dataset.t);b.disabled=true;$('#out12').innerHTML=got.join('<br>');if(got.length===3)done('La carta nunca dejó de escribirse.')})},
-(s)=>{s.innerHTML=`<p>Rebobina el tiempo.</p><input id='time13' type='range' min='0' max='100' value='100' class='form-range'><div id='mem13'></div>`;$('#time13').oninput=e=>{const v=+e.target.value;$('#mem13').textContent=v<70?'Primer abrazo':v<40?'Risa compartida':v<15?'Promesa en voz baja':'';if(v<10)done('Todo era más simple contigo.')};},
-(s)=>{s.innerHTML=`<p>Ilumina la habitación.</p><div class='flashlight' id='room'><div class='hidden-line' style='left:40px;top:70px'>Nunca te olvidé.</div><div class='hidden-line' style='left:210px;top:180px'>Siempre estuviste aquí.</div><div class='reveal' id='rv'></div></div>`;const room=$('#room'),rv=$('#rv');room.onmousemove=e=>{const r=room.getBoundingClientRect();rv.style.setProperty('--x',((e.clientX-r.left)/r.width*100)+'%');rv.style.setProperty('--y',((e.clientY-r.top)/r.height*100)+'%');if(e.clientX-r.left>200&&e.clientY-r.top>150)done('La verdad aún brillaba.')};},
-(s)=>{s.innerHTML=`<p>Confesión final:</p><div class='float-words'>${state.fragments.slice(-8).map(f=>`<span>${f}</span>`).join('')}<span>Nunca</span><span>dejé</span><span>de</span><span>amarte</span></div><button id='close15' class='btn btn-main mt-3'>Unir todo</button>`;$('#close15').onclick=()=>done('Nunca dejé de amarte.')}
+const chapters = [
+  { title:"Capítulo 1 — La Ventana", scene:"La lluvia golpea el cristal. Un colibrí tiembla afuera, mirándote como si recordara tu nombre.", choices:["Abrir la ventana","Ignorarlo"] },
+  { title:"Capítulo 2 — El Mensaje", scene:"Tu teléfono ilumina la oscuridad: \"¿Sigues despierta?\"", choices:["Responder","Ignorar","Leer sin contestar"] },
+  { title:"Capítulo 3 — La Cafetería", scene:"Lo ves al fondo, solo, junto a dos tazas ya frías.", choices:["Entrar","Irse","Observar desde lejos"] },
+  { title:"Capítulo 4 — La Carta", scene:"Una carta jamás abierta aparece entre libros viejos.", choices:["Leerla","Guardarla","Romperla"] },
+  { title:"Capítulo 5 — La Llamada", scene:"2:13 AM. El teléfono vibra sobre tu pecho.", choices:["Responder","Ignorar","Escuchar en silencio"] },
+  { title:"Capítulo 6 — Los Recuerdos", scene:"Fotografías flotan como piezas de un universo roto.", choices:["Guardar las felices","Eliminar las dolorosas","No tocar nada"] },
+  { title:"Capítulo 7 — El Colibrí", scene:"Regresa. Esta vez no parece un ave: parece una señal.", choices:["Extender la mano","Mirarlo de lejos","Cerrar la cortina"] },
+  { title:"Capítulo 8 — El Tren", scene:"La estación vacía respira neón y despedidas.", choices:["Subir al tren","Esperar","Irse"] },
+  { title:"Capítulo 9 — Los Silencios", scene:"Él dice tu nombre. Después, silencio. Te toca llenarlo.", choices:["Hablar con honestidad","Responder con frialdad","Callar"] },
+  { title:"Capítulo 10 — El Regreso", scene:"Da un paso hacia ti. El pasado también.", choices:["Acercarte","Retroceder","Preguntar por qué volvió"] },
+  { title:"Capítulo 11 — El Miedo", scene:"Tu corazón late como si huyera de sí mismo.", choices:["Confiar","Huir","Mantener distancia"] },
+  { title:"Capítulo 12 — La Verdad", scene:"Confesiones incompletas aparecen como luces en la niebla.", choices:["Escuchar todo","Pedir tiempo","Interrumpir"] },
+  { title:"Capítulo 13 — El Universo", scene:"Un cielo estrellado desbloquea frases que solo ustedes entienden.", choices:["Leer cada estrella","Buscar solo una","Cerrar los ojos"] },
+  { title:"Capítulo 14 — La Decisión Final", scene:"\"Si pudieras volver a elegir… ¿te quedarías?\"", choices:["Sí","No","No lo sé"] },
+  { title:"Capítulo 15 — Final Cinematográfico", scene:"Todo converge aquí. Lo que callaste, lo que elegiste, lo que aún sientes.", choices:["Ver final"] }
 ];
 
-function finalConfession(){
-  $('#experience').classList.add('d-none');$('#ending').classList.remove('d-none');
-  const lines=["Quizás fui torpe…","Quizás llegué demasiado tarde…","Pero jamás dejé de sentirlo.","Nunca dejé de amarte."];
-  let i=0;const box=$('#endingText');
-  const next=()=>{if(i>=lines.length){$('#addressBlock').classList.remove('d-none');return;}typeText(box,box.textContent+(box.textContent?'\n\n':'')+lines[i],34,()=>setTimeout(next,650));i++};
-  next();
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || {
+  chapter: 0, decisions: [], memory:{se_aleja:0, evita:0, se_queda:0, carino:0, ignora:0, nostalgia:0}, aiLog:[]
+};
+
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function typeText(el, text, speed=32){ return new Promise(res=>{ el.textContent=""; let i=0; const t=setInterval(()=>{ el.textContent+=text[i]||""; if(++i>text.length){ clearInterval(t); res(); } }, speed); }); }
+
+function updateMemory(choice){
+  const m = state.memory;
+  const c = choice.toLowerCase();
+  if(c.includes("irse")||c.includes("huir")) m.se_aleja++;
+  if(c.includes("ignorar")||c.includes("callar")) {m.evita++;m.ignora++;}
+  if(c.includes("esperar")||c.includes("sí")||c.includes("acerc")) m.se_queda++;
+  if(c.includes("honest")||c.includes("confiar")||c.includes("responder")) m.carino++;
+  if(c.includes("recuerd")||c.includes("estrella")||c.includes("leer")) m.nostalgia++;
 }
 
-$('#btnAccess').onclick=()=>{$('#intro').classList.add('d-none');$('#experience').classList.remove('d-none');audio.bgm.volume=.35;audio.bgm.play().catch(()=>{});render()};
-$('#btnRestart').onclick=()=>{localStorage.removeItem('archivos_corazon');location.reload()};
-$('#btnFinish').onclick=()=>$('#endingText').textContent+="\n\nArchivo cerrado.";
+async function aiNarrative(chapter, choice){
+  const key = localStorage.getItem(API_KEY_STORAGE);
+  if(!key){
+    return `No hay API key configurada. Tu elección fue: "${choice}". Aun así, el aire susurra: quizá una parte de ti nunca quiso irse.`;
+  }
+  const prompt = `Eres un guionista romántico y cinematográfico. Responde en español con 3-4 líneas emotivas, naturales y profundas.\nCapítulo: ${chapter.title}\nEscena: ${chapter.scene}\nElección: ${choice}\nMemoria emocional acumulada: ${JSON.stringify(state.memory)}\nUsa la memoria para personalizar confesión.`;
+  try{
+    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":`Bearer ${key}`},
+      body: JSON.stringify({ model:"deepseek/deepseek-chat-v3.1", messages:[{role:"system",content:"Escribe como una película romántica interactiva."},{role:"user",content:prompt}], temperature:0.9 })
+    });
+    const data = await r.json();
+    const text = data?.choices?.[0]?.message?.content?.trim();
+    return text || "La noche tiembla, pero tu historia aún respira.";
+  }catch(e){
+    return "La conexión con la IA falló, pero la lluvia sigue escribiendo por ustedes.";
+  }
+}
 
-(function intro(){typeText($('#introType'),introLines.join('\n\n'),48)})();
-(function bg(){const c=$('#bgFx'),x=c.getContext('2d');let p=[];const rs=()=>{c.width=innerWidth;c.height=innerHeight;p=Array.from({length:90},()=>({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*2+1,v:Math.random()*0.6+0.2}))};addEventListener('resize',rs);rs();(function loop(){x.clearRect(0,0,c.width,c.height);p.forEach(o=>{x.fillStyle='rgba(135,170,255,.45)';x.beginPath();x.arc(o.x,o.y,o.r,0,7);x.fill();o.y-=o.v;if(o.y<0)o.y=c.height});requestAnimationFrame(loop)})();})();
+function renderChapter(){
+  const idx = state.chapter;
+  if(idx >= chapters.length) return renderEnding();
+  const ch = chapters[idx];
+  $("#chapterTitle").textContent = ch.title;
+  $("#chapterProgress").style.width = `${(idx/chapters.length)*100}%`;
+  $("#sceneBox").innerHTML = `<p>${ch.scene}</p>`;
+  $("#aiBox").classList.add("d-none");
+  const box = $("#choicesBox"); box.innerHTML="";
+  ch.choices.forEach(choice=>{
+    const b = document.createElement("button"); b.className="choice-btn"; b.textContent = choice;
+    b.onclick = async ()=>{
+      state.decisions.push({chapter:ch.title,choice}); updateMemory(choice);
+      save();
+      const ai = await aiNarrative(ch, choice);
+      state.aiLog.push({chapter:ch.title, ai}); save();
+      $("#aiResponse").textContent = ai; $("#aiBox").classList.remove("d-none");
+      setTimeout(()=>{ state.chapter++; save(); renderChapter(); }, 2600);
+    };
+    box.appendChild(b);
+  });
+}
+
+async function renderEnding(){
+  $("#storyScreen").classList.add("d-none");
+  $("#endingScreen").classList.remove("d-none");
+  const m = state.memory;
+  const dynamic = m.se_aleja > m.se_queda
+    ? "Aunque siempre terminabas alejándote… yo seguía esperándote."
+    : "Tal vez una parte de ti tampoco quería irse.";
+  const lines = [
+    "Probamos diferentes caminos…", "En algunos te quedabas.", "En otros te ibas.", "Pero en todos…", "yo seguía enamorándome de ti.",
+    "Nunca dejé de amarte.", dynamic
+  ].join("\n\n");
+  await typeText($("#endingLines"), lines, 34);
+  $("#editableBlock").classList.remove("d-none");
+}
+
+function initIntro(){
+  const intro = ["Existen decisiones que parecen pequeñas…","Pero algunas cambian historias enteras.","¿Qué habría pasado si hubiéramos elegido distinto?"].join("\n\n");
+  typeText($("#introText"), intro, 44);
+}
+
+function initFx(){
+  const rain = $("#rainCanvas"), p = $("#particlesCanvas");
+  const rc = rain.getContext("2d"), pc = p.getContext("2d");
+  let drops=[], stars=[];
+  function resize(){ rain.width=p.width=innerWidth; rain.height=p.height=innerHeight;
+    drops=Array.from({length:180},()=>({x:Math.random()*rain.width,y:Math.random()*rain.height,l:8+Math.random()*16,v:3+Math.random()*5}));
+    stars=Array.from({length:70},()=>({x:Math.random()*p.width,y:Math.random()*p.height,r:Math.random()*1.8,a:Math.random()})); }
+  addEventListener("resize",resize); resize();
+  (function loop(){
+    rc.clearRect(0,0,rain.width,rain.height); pc.clearRect(0,0,p.width,p.height);
+    drops.forEach(d=>{ rc.strokeStyle="rgba(160,190,255,.33)"; rc.beginPath(); rc.moveTo(d.x,d.y); rc.lineTo(d.x-2,d.y+d.l); rc.stroke(); d.y+=d.v; if(d.y>rain.height)d.y=-20; });
+    stars.forEach(s=>{ pc.fillStyle=`rgba(210,220,255,${s.a})`; pc.beginPath(); pc.arc(s.x,s.y,s.r,0,6.28); pc.fill(); s.a += (Math.random()-.5)*.05; s.a=Math.max(.08,Math.min(.9,s.a)); });
+    requestAnimationFrame(loop);
+  })();
+}
+
+$("#startBtn").onclick = ()=>{
+  $("#introScreen").classList.add("d-none"); $("#storyScreen").classList.remove("d-none");
+  $("#bgm").volume=.33; $("#rainSfx").volume=.2; $("#bgm").play().catch(()=>{}); $("#rainSfx").play().catch(()=>{});
+  renderChapter();
+};
+$("#restartBtn").onclick=()=>{ localStorage.removeItem(STORAGE_KEY); location.reload(); };
+$("#saveApiBtn").onclick=()=>{ localStorage.setItem(API_KEY_STORAGE, $("#apiKeyInput").value.trim()); };
+
+initIntro();
+initFx();
